@@ -75,6 +75,13 @@ export class InventoryService {
       throw new ConflictException('Duplicate purchase detected (same origin, value, and date)');
     }
 
+    // Read existing products to compute weighted average prices
+    const productSnapshots = await Promise.all(
+      dto.items.map((item) =>
+        this.db.collection('products').doc(item.product_id).get(),
+      ),
+    );
+
     const batch = this.db.batch();
 
     const purchaseRef = this.db.collection('purchases').doc();
@@ -87,14 +94,34 @@ export class InventoryService {
     };
     batch.set(purchaseRef, purchaseData);
 
-    // Increment stock for each item
-    for (const item of dto.items) {
+    // Increment stock for each item; compute weighted average_price
+    for (let i = 0; i < dto.items.length; i++) {
+      const item = dto.items[i];
       const productRef = this.db.collection('products').doc(item.product_id);
-      batch.update(productRef, {
-        current_stock: FieldValue.increment(item.qty),
-        last_purchase_date: today,
-        average_price: item.price,
-      });
+      const snap = productSnapshots[i];
+
+      let weightedAvgPrice = item.price;
+      if (snap.exists) {
+        const current = snap.data()!;
+        const currentStock: number = current['current_stock'] ?? 0;
+        const prevAvg: number = current['average_price'] ?? item.price;
+        const newStock = currentStock + item.qty;
+        weightedAvgPrice =
+          newStock > 0
+            ? (currentStock * prevAvg + item.qty * item.price) / newStock
+            : item.price;
+      }
+
+      // Use set with merge so the document is created if it doesn't exist yet
+      batch.set(
+        productRef,
+        {
+          current_stock: FieldValue.increment(item.qty),
+          last_purchase_date: today,
+          average_price: Math.round(weightedAvgPrice * 100) / 100,
+        },
+        { merge: true },
+      );
     }
 
     await batch.commit();

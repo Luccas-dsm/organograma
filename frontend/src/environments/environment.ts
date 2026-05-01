@@ -1,3 +1,6 @@
+// Replace all placeholder values below with your actual Firebase project credentials.
+// Find them in Firebase Console → Project Settings → Your Apps → Web app.
+// See README.md for full setup instructions.
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000/api',

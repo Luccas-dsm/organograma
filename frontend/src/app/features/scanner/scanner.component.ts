@@ -328,7 +328,7 @@ export class ScannerComponent {
         origin: receipt.market,
         total_value: totalValue,
         items: items.map((i) => ({
-          product_id: i.product_id ?? `new_${i.clean_name}`,
+          product_id: i.product_id ?? i.clean_name.toLowerCase().replace(/\s+/g, '_'),
           qty: i.qty,
           price: i.unit_price,
         })),
