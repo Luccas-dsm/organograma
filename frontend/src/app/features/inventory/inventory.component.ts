@@ -288,6 +288,14 @@ export class InventoryComponent implements OnInit {
           life: 3000,
         });
       },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível atualizar o estoque',
+          life: 4000,
+        });
+      },
     });
   }
 

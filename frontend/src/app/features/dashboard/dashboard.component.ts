@@ -155,13 +155,6 @@ export class DashboardComponent implements OnInit {
   );
 
   readonly categoryStats = computed<CategoryStat[]>(() => {
-    const map: Record<string, number> = {};
-    for (const purchase of this.purchases()) {
-      // aggregate by product category using item prices
-      map['Total'] = (map['Total'] ?? 0) + purchase.total_value;
-    }
-    // For detailed category breakdown, we'd need to join with products
-    // Here we show total per purchase origin as a simplified view
     const originMap: Record<string, number> = {};
     for (const p of this.purchases()) {
       originMap[p.origin] = (originMap[p.origin] ?? 0) + p.total_value;

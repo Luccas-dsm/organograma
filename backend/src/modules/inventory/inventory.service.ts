@@ -104,7 +104,9 @@ export class InventoryService {
 
   async getPurchasesByMonth(year: number, month: number) {
     const start = `${year}-${String(month).padStart(2, '0')}-01`;
-    const end = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
     const snapshot = await this.db
       .collection('purchases')
       .where('date', '>=', start)
